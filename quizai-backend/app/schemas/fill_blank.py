@@ -12,3 +12,4 @@ class FillBlankRead(FillBlankBase):
 
     class Config:
         orm_mode = True
+        

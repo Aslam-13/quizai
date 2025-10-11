@@ -12,3 +12,5 @@ class TrueFalseRead(TrueFalseBase):
 
     class Config:
         orm_mode = True
+
+        

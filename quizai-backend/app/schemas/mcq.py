@@ -17,3 +17,4 @@ class MCQRead(MCQBase):
 
     class Config:
         orm_mode = True
+        

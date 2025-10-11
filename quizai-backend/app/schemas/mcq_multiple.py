@@ -16,3 +16,4 @@ class MCQMultipleRead(MCQMultipleBase):
 
     class Config:
         orm_mode = True
+        

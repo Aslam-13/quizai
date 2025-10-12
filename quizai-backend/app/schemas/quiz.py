@@ -6,6 +6,7 @@ from typing import List, Literal, Union
 class QuizRequest(BaseModel):
     topic: str
     num_questions: int
+    version: int = 1
 
 # Question types
 class MCQ(BaseModel):

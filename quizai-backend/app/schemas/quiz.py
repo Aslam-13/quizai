@@ -1,12 +1,15 @@
  
-from pydantic import BaseModel
-from typing import List, Literal, Union
+from typing import List, Literal, Union, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, Field
 
 # Request schema
 class QuizRequest(BaseModel):
-    topic: str
-    num_questions: int
-    version: int = 1
+    topic: str = Field(..., min_length=1, max_length=100)
+    num_questions: int = Field(..., ge=1, le=20)
+    version: int = Field(..., ge=1, le=5)
+    chat_id: Optional[UUID] = None
 
 # Question types
 class MCQ(BaseModel):

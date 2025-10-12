@@ -14,7 +14,7 @@ async def generate_quiz_endpoint(
 ):
     try:
         quiz_response = await generate_quiz(payload.topic, payload.num_questions, payload.version)
-        await save_quiz_to_db(session, payload.topic, payload.num_questions, payload.version, quiz_response)
+        await save_quiz_to_db(session, payload.topic, payload.num_questions, payload.version, quiz_response, payload.chat_id)
         return quiz_response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

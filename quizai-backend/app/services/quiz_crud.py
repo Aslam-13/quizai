@@ -1,7 +1,7 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models.quiz_models import (
     Chat,
@@ -12,6 +12,11 @@ from app.models.quiz_models import (
     TrueFalseQuestion,
 )
 from app.schemas.quiz import QuizResponse, MCQ, MultiMCQ, FillBlank, TrueFalse
+
+async def get_chat_by_id(session: Session, chat_id: UUID) -> Optional[Chat]:
+    statement = select(Chat).where(Chat.id == chat_id)
+    result = await session.exec(statement)
+    return result.scalar_one_or_none()
 
 async def create_chat(session: Session) -> Chat:
     chat = Chat()
@@ -118,8 +123,15 @@ async def save_quiz_to_db(
     num_questions: int,
     version: int,
     quiz_response: QuizResponse,
+    chat_id: Optional[UUID] = None,
 ) -> Quiz:
-    chat = await create_chat(session)
+    if chat_id:
+        chat = await get_chat_by_id(session, chat_id)
+        if not chat:
+            raise ValueError(f"Chat with ID {chat_id} not found.")
+    else:
+        chat = await create_chat(session)
+
     quiz = await create_quiz(session, topic, num_questions, version, chat.id)
 
     await create_mcq_questions(session, quiz_response.mcq, quiz.id)

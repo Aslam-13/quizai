@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from app.api.v1.routes import quiz
-from app.db.session import test_db_connection
+from app.db.database import test_db_connection
 
 app = FastAPI()
 

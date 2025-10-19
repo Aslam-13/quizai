@@ -11,11 +11,15 @@ model = genai.GenerativeModel('gemini-pro')
 
 SYSTEM_PROMPT = "You are a skilled educator generating high-quality quizzes."
 
-def build_prompt(topic: str, num_questions: int, version: int) -> str:
+def build_prompt(topic: str, num_questions: int, version: int, quiz_summary_string: str | None = None) -> str:
+    summary_instruction = ""
+    if quiz_summary_string:
+        summary_instruction = f"\nConsider the following summary of a previous quiz on this topic: {quiz_summary_string}. Generate new questions that build upon or explore different aspects of this summary, avoiding direct repetition of previously covered concepts." 
     return f"""
 You are a skilled educator generating quizzes for learners.
 
 Create a JSON object containing a set of questions on the topic: "{topic}".
+{summary_instruction}
 
 Generate a balanced mix of the following question types:
 - MCQs (single correct)
@@ -64,8 +68,8 @@ The quiz should:
 Only return valid JSON. Do not include markdown or explanations outside the object.
 """
 
-async def generate_quiz(topic: str, num_questions: int, version: int) -> QuizResponse:
-    prompt = build_prompt(topic, num_questions, version)
+async def generate_quiz(topic: str, num_questions: int, version: int, quiz_summary_string: str | None = None) -> QuizResponse:
+    prompt = build_prompt(topic, num_questions, version, quiz_summary_string)
 
     response = model.generate_content(
         contents=[

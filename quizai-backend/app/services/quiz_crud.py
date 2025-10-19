@@ -10,6 +10,7 @@ from app.models.quiz_models import (
     MultiMCQQuestion,
     FillBlankQuestion,
     TrueFalseQuestion,
+    QuizSummary
 )
 from app.schemas.quiz import QuizResponse, MCQ, MultiMCQ, FillBlank, TrueFalse
 
@@ -124,6 +125,7 @@ async def save_quiz_to_db(
     version: int,
     quiz_response: QuizResponse,
     chat_id: Optional[UUID] = None,
+    quiz_summary_string: Optional[str] = None,
 ) -> Quiz:
     if chat_id:
         chat = await get_chat_by_id(session, chat_id)
@@ -133,6 +135,16 @@ async def save_quiz_to_db(
         chat = await create_chat(session)
 
     quiz = await create_quiz(session, topic, num_questions, version, chat.id)
+
+    if version >= 2 and quiz_summary_string:
+        quiz_summary = QuizSummary(
+            quiz_id=quiz.id,
+            summary_string=quiz_summary_string,
+            version=version
+        )
+        session.add(quiz_summary)
+        await session.commit()
+        await session.refresh(quiz_summary)
 
     await create_mcq_questions(session, quiz_response.mcq, quiz.id)
     await create_multi_mcq_questions(session, quiz_response.multi_mcq, quiz.id)

@@ -24,10 +24,20 @@ class Quiz(TimestampedModel, table=True):
     chat_id: UUID = Field(foreign_key="chats.id")
 
     chat: Chat = Relationship(back_populates="quizzes")
+    summaries: List["QuizSummary"] = Relationship(back_populates="quiz")
     mcqs: List["MCQQuestion"] = Relationship(back_populates="quiz")
     multi_mcqs: List["MultiMCQQuestion"] = Relationship(back_populates="quiz")
     fill_blanks: List["FillBlankQuestion"] = Relationship(back_populates="quiz")
     true_false_questions: List["TrueFalseQuestion"] = Relationship(back_populates="quiz")
+
+# Quiz Summary Model
+class QuizSummary(TimestampedModel, table=True):
+    __tablename__ = "quiz_summaries"
+    quiz_id: UUID = Field(foreign_key="quizzes.id")
+    summary_string: str
+    version: int = Field(default=1)
+
+    quiz: Quiz = Relationship(back_populates="summaries")
 
 # Question Base Model (not a table itself, for inheritance)
 class QuestionBase(TimestampedModel):
@@ -65,4 +75,3 @@ class TrueFalseQuestion(QuestionBase, table=True):
     ans: bool # Store as boolean
 
     quiz: Quiz = Relationship(back_populates="true_false_questions")
-    

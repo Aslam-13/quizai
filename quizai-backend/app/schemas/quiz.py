@@ -10,6 +10,7 @@ class QuizRequest(BaseModel):
     num_questions: int = Field(..., ge=1, le=20)
     version: int = Field(..., ge=1, le=5)
     chat_id: Optional[UUID] = None
+    summary_id: Optional[UUID] = None
 
 # Question types
 class MCQ(BaseModel):

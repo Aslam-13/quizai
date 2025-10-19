@@ -11,15 +11,11 @@ model = genai.GenerativeModel('gemini-pro')
 
 SYSTEM_PROMPT = "You are a skilled educator generating high-quality quizzes."
 
-def build_prompt(topic: str, num_questions: int, version: int, quiz_summary_string: str | None = None) -> str:
-    summary_instruction = ""
-    if quiz_summary_string:
-        summary_instruction = f"\nConsider the following summary of a previous quiz on this topic: {quiz_summary_string}. Generate new questions that build upon or explore different aspects of this summary, avoiding direct repetition of previously covered concepts." 
+def build_prompt(topic: str, num_questions: int, version: int) -> str:
     return f"""
 You are a skilled educator generating quizzes for learners.
 
 Create a JSON object containing a set of questions on the topic: "{topic}".
-{summary_instruction}
 
 Generate a balanced mix of the following question types:
 - MCQs (single correct)
@@ -68,8 +64,8 @@ The quiz should:
 Only return valid JSON. Do not include markdown or explanations outside the object.
 """
 
-async def generate_quiz(topic: str, num_questions: int, version: int, quiz_summary_string: str | None = None) -> QuizResponse:
-    prompt = build_prompt(topic, num_questions, version, quiz_summary_string)
+async def generate_quiz(topic: str, num_questions: int, version: int) -> QuizResponse:
+    prompt = build_prompt(topic, num_questions, version)
 
     response = model.generate_content(
         contents=[
@@ -84,3 +80,40 @@ async def generate_quiz(topic: str, num_questions: int, version: int, quiz_summa
     json_content = response.text
     parsed = json.loads(json_content)
     return QuizResponse(**parsed)
+
+
+SYSTEM_PROMPT_SUMMARY = "You are an AI assistant that provides constructive feedback and summarizes quiz performance."
+
+def build_summary_prompt(topic: str, correct_questions: list, incorrect_questions: list) -> str:
+    correct_q_text = "\n".join([f"- {q.q} (Answer: {q.ans})" for q in correct_questions]) if correct_questions else "None"
+    incorrect_q_text = "\n".join([f"- {q.q} (Correct Answer: {q.ans})" for q in incorrect_questions]) if incorrect_questions else "None"
+
+    return f"""
+Based on a quiz on the topic '{topic}', provide a concise summary of the user's performance.
+
+Correctly Answered Questions:
+{correct_q_text}
+
+Incorrectly Answered Questions:
+{incorrect_q_text}
+
+Provide a summary that:
+- Highlights areas of strength based on correct answers.
+- Identifies areas for improvement based on incorrect answers.
+- Suggests topics or concepts to review.
+- Is no more than 200 words.
+"""
+
+async def generate_summary(topic: str, correct_questions: list, incorrect_questions: list) -> str:
+    prompt = build_summary_prompt(topic, correct_questions, incorrect_questions)
+
+    response = model.generate_content(
+        contents=[
+            {"role": "user", "parts": [SYSTEM_PROMPT_SUMMARY]},
+            {"role": "user", "parts": [prompt]},
+        ],
+        generation_config=genai.types.GenerationConfig(
+            temperature=0.7,
+        ),
+    )
+    return response.text

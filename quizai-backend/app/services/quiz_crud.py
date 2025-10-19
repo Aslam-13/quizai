@@ -13,6 +13,17 @@ from app.models.quiz_models import (
     QuizSummary
 )
 from app.schemas.quiz import QuizResponse, MCQ, MultiMCQ, FillBlank, TrueFalse
+from sqlalchemy.orm import selectinload
+
+async def get_quiz_with_questions(session: Session, quiz_id: UUID) -> Optional[Quiz]:
+    statement = select(Quiz).where(Quiz.id == quiz_id).options(
+        selectinload(Quiz.mcqs),
+        selectinload(Quiz.multi_mcqs),
+        selectinload(Quiz.fill_blanks),
+        selectinload(Quiz.true_false_questions),
+    )
+    result = await session.exec(statement)
+    return result.scalar_one_or_none()
 
 async def get_chat_by_id(session: Session, chat_id: UUID) -> Optional[Chat]:
     statement = select(Chat).where(Chat.id == chat_id)
@@ -125,7 +136,6 @@ async def save_quiz_to_db(
     version: int,
     quiz_response: QuizResponse,
     chat_id: Optional[UUID] = None,
-    quiz_summary_string: Optional[str] = None,
 ) -> Quiz:
     if chat_id:
         chat = await get_chat_by_id(session, chat_id)
@@ -135,16 +145,6 @@ async def save_quiz_to_db(
         chat = await create_chat(session)
 
     quiz = await create_quiz(session, topic, num_questions, version, chat.id)
-
-    if version >= 2 and quiz_summary_string:
-        quiz_summary = QuizSummary(
-            quiz_id=quiz.id,
-            summary_string=quiz_summary_string,
-            version=version
-        )
-        session.add(quiz_summary)
-        await session.commit()
-        await session.refresh(quiz_summary)
 
     await create_mcq_questions(session, quiz_response.mcq, quiz.id)
     await create_multi_mcq_questions(session, quiz_response.multi_mcq, quiz.id)

@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${zain.variable} ${zain.variable} antialiased`}
+        className={`${zain.variable} antialiased`}
       >
         {children}
       </body>

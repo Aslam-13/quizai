@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Zain } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Zain({
-  variable: "--font-Zain-sans",
+const zain = Zain({
+  variable: "--font-zain-sans",
   subsets: ["latin"],
   weight: "400",
 });
@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistSans.variable} antialiased`}
+        className={`${zain.variable} ${zain.variable} antialiased`}
       >
         {children}
       </body>

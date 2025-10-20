@@ -6,7 +6,7 @@ class MCQMultipleBase(BaseModel):
     option_b: str
     option_c: str
     option_d: str
-    correct_answers: str  # e.g., "A,C"
+    correct_answers: list[str]  # e.g., ["A", "C"]
 
 class MCQMultipleCreate(MCQMultipleBase):
     pass

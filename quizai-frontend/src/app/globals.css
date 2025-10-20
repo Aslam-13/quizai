@@ -10,19 +10,17 @@
   /* 2. Set the default theme (light mode) using your variables */
   --background: var(--light-bg);
   --foreground: var(--light-text);
+
+  /* This part now works for both themes without changes */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-zain-sans);
 }
 
 .dark:root {
   /* 3. Redefine the variables for dark mode */
   --background: var(--dark-bg);
   --foreground: var(--dark-text);
-}
-
-@theme inline {
-  /* This part now works for both themes without changes */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-zain-sans);
 }
 
 body {

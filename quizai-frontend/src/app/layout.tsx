@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Zain } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/Header";
 
 const zain = Zain({
   variable: "--font-zain-sans",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body
         className={`${zain.variable} antialiased`}
       >
+        <Header />
         {children}
       </body>
     </html>

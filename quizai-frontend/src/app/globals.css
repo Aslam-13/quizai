@@ -6,6 +6,7 @@
   --light-text: #000000; /* black */
   --dark-bg: #000000; /* twitter dark */
   --dark-text: #FFFFFF; /* white */
+  --primary: #22c55e; /* green-500 */
 
   /* 2. Set the default theme (light mode) using your variables */
   --background: var(--light-bg);

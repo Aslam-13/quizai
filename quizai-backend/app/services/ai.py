@@ -6,7 +6,7 @@ from app.schemas.quiz import QuizResponse
 
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-pro')
+model = genai.GenerativeModel('gemini-2.5-pro')
  
 
 SYSTEM_PROMPT = "You are a skilled educator generating high-quality quizzes."
@@ -27,6 +27,8 @@ The quiz should:
 - Contain {num_questions} questions (2–3 from each type)
 - Start with easy questions and gradually get harder (difficulty level: {version})
 - Include answer and explanation for each question
+- Your response MUST be a single, valid JSON object, starting directly with '{{' and ending with '}}'.
+- Do NOT include any markdown formatting (like ```json) or any other text before or after the JSON object.
 - Return only JSON in this structure:
 
 {{
@@ -64,19 +66,18 @@ The quiz should:
 Only return valid JSON. Do not include markdown or explanations outside the object.
 """
 
-async def generate_quiz(topic: str, num_questions: int, version: int) -> QuizResponse:
+async def generate_quiz(topic: str, num_questions: int, version: int, quiz_summary_string: str) -> QuizResponse:
     prompt = build_prompt(topic, num_questions, version)
-
     response = model.generate_content(
-        contents=[
-            {"role": "user", "parts": [SYSTEM_PROMPT]},
-            {"role": "user", "parts": [prompt]},
-        ],
-        generation_config=genai.types.GenerationConfig(
-            temperature=0.7,
-        ),
+      contents=[
+        {"role": "user", "parts": [SYSTEM_PROMPT]},
+        {"role": "user", "parts": [prompt]},
+      ],
+      generation_config=genai.types.GenerationConfig(
+        temperature=1.0,
+        response_mime_type="application/json"
+      ),
     )
-
     json_content = response.text
     parsed = json.loads(json_content)
     return QuizResponse(**parsed)

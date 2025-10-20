@@ -21,8 +21,9 @@ async def generate_quiz_endpoint(
             quiz_summary_obj = quiz_summary.first()
             if quiz_summary_obj:
                 quiz_summary_string = quiz_summary_obj.summary_string
-
+        print("Generating quiz with summary:", quiz_summary_string)
         quiz_response = await generate_quiz(payload.topic, payload.num_questions, payload.version, quiz_summary_string)
+        print("Generated quiz response:", quiz_response)
         await save_quiz_to_db(session, payload.topic, payload.num_questions, payload.version, quiz_response, payload.chat_id)
         return quiz_response
 

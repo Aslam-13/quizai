@@ -1,3 +1,4 @@
+# app/services/quiz_crud.py
 from typing import List, Optional
 from uuid import UUID
 
@@ -70,8 +71,6 @@ async def create_mcq_questions(
         db_mcqs.append(db_mcq)
         session.add(db_mcq)
     await session.commit()
-    for db_mcq in db_mcqs:
-        await session.refresh(db_mcq)
     return db_mcqs
 
 async def create_multi_mcq_questions(
@@ -89,8 +88,6 @@ async def create_multi_mcq_questions(
         db_multi_mcqs.append(db_multi_mcq)
         session.add(db_multi_mcq)
     await session.commit()
-    for db_multi_mcq in db_multi_mcqs:
-        await session.refresh(db_multi_mcq)
     return db_multi_mcqs
 
 async def create_fill_blank_questions(
@@ -107,8 +104,6 @@ async def create_fill_blank_questions(
         db_fill_blanks.append(db_fill_blank)
         session.add(db_fill_blank)
     await session.commit()
-    for db_fill_blank in db_fill_blanks:
-        await session.refresh(db_fill_blank)
     return db_fill_blanks
 
 async def create_true_false_questions(
@@ -125,8 +120,6 @@ async def create_true_false_questions(
         db_true_false_questions.append(db_tf_question)
         session.add(db_tf_question)
     await session.commit()
-    for db_tf_question in db_true_false_questions:
-        await session.refresh(db_tf_question)
     return db_true_false_questions
 
 async def save_quiz_to_db(
@@ -137,18 +130,30 @@ async def save_quiz_to_db(
     quiz_response: QuizResponse,
     chat_id: Optional[UUID] = None,
 ) -> Quiz:
-    if chat_id:
-        chat = await get_chat_by_id(session, chat_id)
-        if not chat:
-            raise ValueError(f"Chat with ID {chat_id} not found.")
-    else:
-        chat = await create_chat(session)
+    try:
+        if chat_id:
+            chat = await get_chat_by_id(session, chat_id)
+            if not chat:
+                raise ValueError(f"Chat with ID {chat_id} not found.")
+        else:
+            chat = await create_chat(session)
 
-    quiz = await create_quiz(session, topic, num_questions, version, chat.id)
+        quiz = await create_quiz(session, topic, num_questions, version, chat.id)
+        quiz_id = quiz.id
+        print("Creating MCQ questions...")
+        await create_mcq_questions(session, quiz_response.mcq, quiz_id)
+        print("MCQ created successfully")
+        print("Creating fill blank questions...")
+        await create_fill_blank_questions(session, quiz_response.fillblanks, quiz_id)
+        print("Fill blank created successfully")
+        await create_true_false_questions(session, quiz_response.true_false, quiz_id)
+        await create_multi_mcq_questions(session, quiz_response.multi_mcq, quiz_id)
 
-    await create_mcq_questions(session, quiz_response.mcq, quiz.id)
-    await create_multi_mcq_questions(session, quiz_response.multi_mcq, quiz.id)
-    await create_fill_blank_questions(session, quiz_response.fillblanks, quiz.id)
-    await create_true_false_questions(session, quiz_response.true_false, quiz.id)
-
-    return quiz
+        # Refresh quiz with all relationships loaded
+        await session.refresh(quiz, attribute_names=['mcqs', 'multi_mcqs', 'fill_blanks', 'true_false_questions'])
+        return quiz
+    except Exception as e:
+        print(f"ERROR: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise
